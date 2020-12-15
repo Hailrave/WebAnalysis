@@ -9,28 +9,23 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] argv) throws IOException {
-        Document document = Jsoup.connect("https://yandex.ru/")
+        Document document = Jsoup.connect("https://rb.ru/sitemap-news.xml")
                 .userAgent("Chrome/4.0.249.0")
                 .referrer("http://www.google.com")
                 .get();
 
-        Elements listNews = document.select("#news_panel_news > ol:nth-child(1)");
-        System.out.println(listNews);
+
+
+        //Elements listNews = document.select("#news_panel_news > ol:nth-child(1)");
+        /*System.out.println(listNews);
         for (Element element : listNews.select("a"))
-            System.out.println(element.text());
+            System.out.println(element.text());*/
 
-        Elements titleElem = document.select("head > title");
-        //System.out.println(titleElem.text());
+        WebInfo webInfo = new WebInfo();
+        webInfo.getInfo("https://rb.ru/news/rossiya-apple-pay/");
 
-        Elements divs = document.select("body > div");
-        //System.out.println(divs);
+        //Elements links = document.select("url > loc");
 
-        Elements firstDiv = document.select("body > div:nth-child(1)");
-
-        Elements contentElem = document.select("body > div.content");
-
-        Elements idElem = document.select("#123");
-
-        Elements divHeader = document.select("body > div.header.main :not(h1)");
+        //System.out.println(links.text());
     }
 }
