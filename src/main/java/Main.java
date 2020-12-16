@@ -16,16 +16,10 @@ public class Main {
 
 
 
-        //Elements listNews = document.select("#news_panel_news > ol:nth-child(1)");
-        /*System.out.println(listNews);
-        for (Element element : listNews.select("a"))
-            System.out.println(element.text());*/
+        //Elements links = document.select("url > loc");
+        //System.out.println(links.text());
 
         WebInfo webInfo = new WebInfo();
-        webInfo.getInfo("https://rb.ru/news/rossiya-apple-pay/");
-
-        //Elements links = document.select("url > loc");
-
-        //System.out.println(links.text());
+        webInfo.getInfo("https://rb.ru/news/sdelano-vrossii-2020/");
     }
 }

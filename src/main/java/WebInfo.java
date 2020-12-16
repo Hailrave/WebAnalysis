@@ -4,10 +4,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class WebInfo {
     static String title;
-    static String tags;
+    static ArrayList<String> tags = new ArrayList<>();
     static String date;
     static String autor;
 
@@ -42,5 +43,11 @@ public class WebInfo {
             sb.append(div.text());
         }
         System.out.println(sb);
+
+        Elements tegsL = document.select("#article-feed > div > section.article-header > div > div.article-header__wrap.article-header__wrap--tags > ul");
+        for (Element div : tegsL) {
+            tags.add(div.text());
+        }
+        System.out.println(tags);
     }
 }
