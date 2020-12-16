@@ -14,15 +14,21 @@ public class WebSite {
     private static String autor;
     private static String content;
 
-    static{
-        tags = new ArrayList<>();
-    }
 
     public WebSite(String URL) throws IOException {
         document = Jsoup.connect(URL)
                 .userAgent("Chrome/4.0.249.0")
                 .referrer("http://www.google.com")
                 .get();
+        setInfo();
+    }
+
+    private void setInfo() {
+        setAutor();
+        setContent();
+        setDate();
+        setTags();
+        setTitle();
     }
 
     private void setTitle() {
@@ -33,6 +39,7 @@ public class WebSite {
     }
 
     private void setTags() {
+        tags = new ArrayList<>();
         Elements tegsL = document.select("#article-feed > div > section.article-header > div > div.article-header__wrap.article-header__wrap--tags > ul");
         for (Element div : tegsL) {
             tags.add(div.text());
@@ -60,6 +67,14 @@ public class WebSite {
             sb.append(div.text());
         }
         content = sb.toString();
+    }
+
+    public void printInfo() {
+        System.out.println(title);
+        System.out.println(tags);
+        System.out.println(date);
+        System.out.println(autor);
+        System.out.println(content);
     }
 
 }
