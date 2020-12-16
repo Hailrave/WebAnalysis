@@ -19,7 +19,6 @@ public class Main {
         //Elements links = document.select("url > loc");
         //System.out.println(links.text());
 
-        WebInfo webInfo = new WebInfo();
-        webInfo.setInfo("https://rb.ru/news/sdelano-vrossii-2020/");
+        WebSite webInfo = new WebSite("https://rb.ru/news/sdelano-vrossii-2020/");
     }
 }
