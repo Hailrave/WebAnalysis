@@ -32,7 +32,8 @@ public class WebSite {
     }
 
     private void setTitle() {
-        Elements titleL = document.select("#article-feed > div > section.article-header > div > div.article-header__wrap.article-header__wrap--rubric > h1");
+        Elements titleL = document.select("#article-feed > div > section.article-header > " +
+                "div > div.article-header__wrap.article-header__wrap--rubric > h1");
         for (Element div : titleL) {
             title = div.text();
         }
@@ -40,21 +41,26 @@ public class WebSite {
 
     private void setTags() {
         tags = new ArrayList<>();
-        Elements tegsL = document.select("#article-feed > div > section.article-header > div > div.article-header__wrap.article-header__wrap--tags > ul");
+        Elements tegsL = document.select("#article-feed > div > section.article-header > div " +
+                "> div.article-header__wrap.article-header__wrap--tags > ul");
         for (Element div : tegsL) {
             tags.add(div.text());
         }
     }
 
     private void setDate() {
-        Elements dateL = document.select("#article-feed > div > section.article-header > div > div.article-header__wrap.article-header__wrap--l2 > div.article-header__wrap.article-header__wrap--header.article-header__wrap--header-2 > time > span:nth-child(2)");
+        Elements dateL = document.select("#article-feed > div > section.article-header > div " +
+                "> div.article-header__wrap.article-header__wrap--l2 > " +
+                "div.article-header__wrap.article-header__wrap--header.article-header__wrap--header-2 > time > span:nth-child(2)");
         for (Element div : dateL) {
             date = div.text();
         }
     }
 
     private void setAutor() {
-        Elements autorL = document.select("#article-feed > div > section.article-header > div > div.article-header__wrap.article-header__wrap--l2 > div.article-header__wrap.article-header__wrap--author > div > span > a");
+        Elements autorL = document.select("#article-feed > div > section.article-header > div > " +
+                "div.article-header__wrap.article-header__wrap--l2 > div.article-header__wrap.article-header__wrap--author > " +
+                "div > span > a");
         for (Element div : autorL) {
             autor = div.text();
         }
@@ -62,7 +68,8 @@ public class WebSite {
 
     private void setContent() {
         StringBuilder sb = new StringBuilder();
-        Elements contentL = document.select("#article-feed > div > section.article > div.article__container.article__container--main > div > div:nth-child(2)");
+        Elements contentL = document.select("#article-feed > div > section.article > " +
+                "div.article__container.article__container--main > div > div:nth-child(2)");
         for (Element div : contentL) {
             sb.append(div.text());
         }
