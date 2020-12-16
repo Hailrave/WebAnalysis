@@ -20,6 +20,6 @@ public class Main {
         //System.out.println(links.text());
 
         WebInfo webInfo = new WebInfo();
-        webInfo.getInfo("https://rb.ru/news/sdelano-vrossii-2020/");
+        webInfo.setInfo("https://rb.ru/news/sdelano-vrossii-2020/");
     }
 }

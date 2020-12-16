@@ -11,9 +11,10 @@ public class WebInfo {
     static ArrayList<String> tags = new ArrayList<>();
     static String date;
     static String autor;
+    static String content;
 
 
-    public void getInfo(String URL) throws IOException {
+    public void setInfo(String URL) throws IOException {
         Document document = Jsoup.connect(URL)
                 .userAgent("Chrome/4.0.249.0")
                 .referrer("http://www.google.com")
@@ -42,6 +43,7 @@ public class WebInfo {
         for (Element div : contentL) {
             sb.append(div.text());
         }
+        content = sb.toString();
         System.out.println(sb);
 
         Elements tegsL = document.select("#article-feed > div > section.article-header > div > div.article-header__wrap.article-header__wrap--tags > ul");
