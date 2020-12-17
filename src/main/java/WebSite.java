@@ -4,13 +4,16 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class WebSite {
     private static Document document;
     private static String title;
     private static ArrayList<String> tags;
-    private static String date;
+    private static java.util.Date date;
     private static String autor;
     private static String content;
 
@@ -29,6 +32,30 @@ public class WebSite {
         setDate();
         setTags();
         setTitle();
+    }
+
+    public static Document getDocument() {
+        return document;
+    }
+
+    public static String getTitle() {
+        return title;
+    }
+
+    public static ArrayList<String> getTags() {
+        return tags;
+    }
+
+    public static Date getDate() {
+        return date;
+    }
+
+    public static String getAutor() {
+        return autor;
+    }
+
+    public static String getContent() {
+        return content;
     }
 
     private void setTitle() {
@@ -53,7 +80,11 @@ public class WebSite {
                 "> div.article-header__wrap.article-header__wrap--l2 > " +
                 "div.article-header__wrap.article-header__wrap--header.article-header__wrap--header-2 > time > span:nth-child(2)");
         for (Element div : dateL) {
-            date = div.text();
+            try {
+                date = new SimpleDateFormat("d MMMM yyyy").parse(div.text());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
         }
     }
 
