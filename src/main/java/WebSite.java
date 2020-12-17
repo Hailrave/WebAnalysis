@@ -34,27 +34,27 @@ public class WebSite {
         setTitle();
     }
 
-    public static Document getDocument() {
+    public Document getDocument() {
         return document;
     }
 
-    public static String getTitle() {
+    public String getTitle() {
         return title;
     }
 
-    public static ArrayList<String> getTags() {
+    public ArrayList<String> getTags() {
         return tags;
     }
 
-    public static Date getDate() {
+    public Date getDate() {
         return date;
     }
 
-    public static String getAutor() {
+    public String getAutor() {
         return autor;
     }
 
-    public static String getContent() {
+    public String getContent() {
         return content;
     }
 

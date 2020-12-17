@@ -4,6 +4,6 @@ import java.text.ParseException;
 
 public class Main {
     public static void main(String[] argv) throws IOException, InterruptedException {
-        Parser parser = new Parser("https://rb.ru/sitemap-news.xml");
+        Parser parser = new Parser();
     }
 }

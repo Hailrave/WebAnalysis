@@ -3,10 +3,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.ParseException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -59,12 +56,17 @@ public class Parser {
             }
         }
         else {
-
+            BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH));
+            String str = reader.readLine();
+            while (str != null) {
+                SET_LINKS.add(str);
+                str = reader.readLine();
+            }
         }
 
     }
 
-    public Parser(String URL) throws IOException, InterruptedException {
+    public Parser() throws IOException, InterruptedException {
         Document document = Jsoup.connect(GEN_URL)
                 .userAgent("Chrome/4.0.249.0")
                 .referrer("http://www.google.com")
