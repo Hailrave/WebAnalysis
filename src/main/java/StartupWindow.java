@@ -17,6 +17,7 @@ public class StartupWindow extends JFrame implements ActionListener //главн
     {
         setTitle("News catcher");
         setSize(300,200);
+        setResizable(false);
         setLocationRelativeTo(null);
         setLayout(new GridBagLayout());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -43,7 +44,7 @@ public class StartupWindow extends JFrame implements ActionListener //главн
         if (cmd.equals("Start")){ //создание окна "break_window"
             dispose();
             new Break_Window();
-            //функция начало наблюдения
+            //функция начало наполнение
         }
         if(cmd.equals("Set")) //создание окна "timer_window"
         {
@@ -52,18 +53,5 @@ public class StartupWindow extends JFrame implements ActionListener //главн
         }
     }
 
-
-    public static void main(String[] args)
-    {
-        SwingUtilities.invokeLater(new Runnable(){
-
-            @Override
-            public void run()
-            {
-                new StartupWindow().setVisible(true);
-            }
-
-        });
-    }
 }
 

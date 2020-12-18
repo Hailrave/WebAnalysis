@@ -1,9 +1,17 @@
+import javax.swing.*;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.text.ParseException;
 
 public class Main {
-    public static void main(String[] argv) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException {
         Parser parser = new Parser();
+        /*SwingUtilities.invokeLater(new Runnable(){
+
+            @Override
+            public void run()
+            {
+                new StartupWindow().setVisible(true);
+            }
+
+        });*/
     }
 }

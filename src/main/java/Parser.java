@@ -7,6 +7,9 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class Parser {
     private static final Set<String> SET_LINKS = new HashSet<>();
@@ -100,18 +103,48 @@ public class Parser {
 
     }
 
+    private void printLink(Element link) throws IOException {
+        this.document = Jsoup.connect(link.text())
+                .userAgent("Chrome/4.0.249.0")
+                .referrer("http://www.google.com")
+                .get();
+        Elements once = document.select("url > loc");
+        for (Element onCE : once) {
+            System.out.println(onCE.text());
+            synchronized (this) {
+                SET_LINKS.add(onCE.text());
+            }
+        }
+        //fillTxt();
+    }
+
     public Parser() throws IOException {
-        this.document = Jsoup.connect(GEN_URL)
+        this.document = Jsoup.connect("https://rb.ru/sitemap.xml")
                 .userAgent("Chrome/4.0.249.0")
                 .referrer("http://www.google.com")
                 .get();
 
 
-        for (String str : SET_LINKS) {
-            System.out.println(str);
-            //WebSite webSite = new WebSite(str);
-            //webSite.printInfo();
+        final int THREADS = 8;
+        ExecutorService pool = Executors.newFixedThreadPool(THREADS);
+        Elements links = document.select("loc");
+        for (Element link: links){
+            pool.execute(() -> {
+                try {
+                    printLink(link);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         }
+        pool.shutdown();
+        try {
+            pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("FINALLY");
 
         fillTxt();
 
