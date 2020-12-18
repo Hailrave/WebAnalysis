@@ -11,31 +11,36 @@ import java.util.Date;
 
 public class WebSite {
     private static Document document;
-    private static String title;
-    private static ArrayList<String> tags;
-    private static java.util.Date date;
-    private static String autor;
-    private static String content;
-
+    private final String URL;
+    private String title;
+    private ArrayList<String> tags;
+    private java.util.Date date;
+    private String autor;
+    private String content;
+    private String publType;
+    private String subscribtion;
 
     public WebSite(String URL) throws IOException {
         document = Jsoup.connect(URL)
                 .userAgent("Chrome/4.0.249.0")
                 .referrer("http://www.google.com")
                 .get();
+        this.URL = URL;
         setInfo();
     }
 
     private void setInfo() {
+        setPublType();
         setAutor();
+        setSubscribtion();
         setContent();
         setDate();
         setTags();
         setTitle();
     }
 
-    public Document getDocument() {
-        return document;
+    public String getPublType() {
+        return publType;
     }
 
     public String getTitle() {
@@ -58,30 +63,39 @@ public class WebSite {
         return content;
     }
 
+    public String getSubscribtion() {
+        return subscribtion;
+    }
+
+    private void setPublType() {
+        String[] str1 = URL.split("/"); //3 элемент
+        this.publType = str1[3];
+    }
+
     private void setTitle() {
-        Elements titleL = document.select("#article-feed > div > section.article-header > " +
+        Elements title = document.select("#article-feed > div > section.article-header > " +
                 "div > div.article-header__wrap.article-header__wrap--rubric > h1");
-        for (Element div : titleL) {
-            title = div.text();
+        for (Element div : title) {
+            this.title = div.text();
         }
     }
 
     private void setTags() {
         tags = new ArrayList<>();
-        Elements tegsL = document.select("#article-feed > div > section.article-header > div " +
+        Elements tegs = document.select("#article-feed > div > section.article-header > div " +
                 "> div.article-header__wrap.article-header__wrap--tags > ul");
-        for (Element div : tegsL) {
-            tags.add(div.text());
+        for (Element div : tegs) {
+            this.tags.add(div.text());
         }
     }
 
     private void setDate() {
-        Elements dateL = document.select("#article-feed > div > section.article-header > div " +
+        Elements date = document.select("#article-feed > div > section.article-header > div " +
                 "> div.article-header__wrap.article-header__wrap--l2 > " +
                 "div.article-header__wrap.article-header__wrap--header.article-header__wrap--header-2 > time > span:nth-child(2)");
-        for (Element div : dateL) {
+        for (Element div : date) {
             try {
-                date = new SimpleDateFormat("d MMMM yyyy").parse(div.text());
+                this.date = new SimpleDateFormat("d MMMM yyyy").parse(div.text());
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -89,29 +103,39 @@ public class WebSite {
     }
 
     private void setAutor() {
-        Elements autorL = document.select("#article-feed > div > section.article-header > div > " +
+        Elements autor = document.select("#article-feed > div > section.article-header > div > " +
                 "div.article-header__wrap.article-header__wrap--l2 > div.article-header__wrap.article-header__wrap--author > " +
                 "div > span > a");
-        for (Element div : autorL) {
-            autor = div.text();
+        for (Element div : autor) {
+            this.autor = div.text();
+        }
+    }
+
+    private void setSubscribtion() {
+        Elements subscr = document.select("#article-feed > div > section.article > " +
+                "div.article__container.article__container--main > div > div:nth-child(2) > div.article__introduction");
+        for (Element div : subscr) {
+            this.subscribtion = div.text();
         }
     }
 
     private void setContent() {
         StringBuilder sb = new StringBuilder();
-        Elements contentL = document.select("#article-feed > div > section.article > " +
-                "div.article__container.article__container--main > div > div:nth-child(2)");
-        for (Element div : contentL) {
+        Elements content = document.select("#article-feed > div > section.article > " +
+                "div.article__container.article__container--main > div > div:nth-child(2) > div.article__content-block.abv > p");
+        for (Element div : content) {
             sb.append(div.text());
         }
-        content = sb.toString();
+        this.content = sb.toString();
     }
 
     public void printInfo() {
+        System.out.println(publType);
         System.out.println(title);
         System.out.println(tags);
         System.out.println(date);
         System.out.println(autor);
+        System.out.println(subscribtion);
         System.out.println(content);
     }
 
