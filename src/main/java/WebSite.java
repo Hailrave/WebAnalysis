@@ -27,6 +27,7 @@ public class WebSite {
                 .get();
         this.URL = URL;
         setInfo();
+        printInfo();
     }
 
     private void setInfo() {

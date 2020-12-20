@@ -17,7 +17,8 @@ public class Parser {
     private int sleepTimer; //in minutes
     private static final String FILE_PATH = "listNews.txt";
     private static BufferedWriter writer;
-    private static int currentState; // 1 - все ссылки сохранены в txt, 2 - вся информация в БД
+    private static int currentState; // -1 - файл пуст, 0 - не все ссылки сохранились,
+    // 1 - все ссылки сохранены в txt, 2 - вся информация в БД
     private final int THREADS = 8;
 
     static {
@@ -34,34 +35,59 @@ public class Parser {
 
     //TODO первичное наполнение, наблюдение
 
-    public void primFill() throws IOException {
-        ExecutorService pool = Executors.newFixedThreadPool(THREADS);
-        Elements links = document.select("loc");
-        for (Element link: links){
-            pool.execute(() -> {
-                try {
-                    formLink(link);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+    private void stateHandler() throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH));
+        String tmp = reader.readLine();
+        if (tmp == null) {
+            currentState = -1;
         }
-        pool.shutdown();
-        try {
-            pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        else {
+            try {
+                currentState = Integer.parseInt(tmp);
+            } catch (Exception e) {
+                currentState = 0; //какие-то ссылки сохранились, выяснить какие
+            }
         }
-        setFlagTxt('1'); //все необходимые ссылки получены в файл
-        currentState = 1;
+        reader.close();
+    }
 
+    public void primFill() throws IOException {
+        stateHandler();
+
+        if (currentState == 2) { //обновить данные
+
+        }
+
+        if (currentState == -1) { //заполнить
+            ExecutorService pool = Executors.newFixedThreadPool(THREADS);
+            Elements links = document.select("loc");
+            for (Element link: links){
+                pool.execute(() -> {
+                    try {
+                        formLink(link);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+            pool.shutdown();
+            try {
+                pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            setFlagTxt('1'); //все необходимые ссылки получены в файл
+        }
+
+        if (currentState == 0) {
+
+        }
 
         if (SET_LINKS.isEmpty()) {
             fillSet();
         }
         getInfoFields();
-        setFlagTxt('2'); //база данных наполнена информацией
-        currentState = 2;
+        setFlagTxt('2'); //БД наполнена информацией
     }
 
     /*public void observation() {
@@ -81,9 +107,11 @@ public class Parser {
             writerF.write(str + "\n");
         }
         writerF.close();
+        currentState = Integer.parseInt(String.valueOf(unit));
     }
 
     private void getInfoFields() {
+        System.setProperty("https.protocols", "TLSv1.1");
         ExecutorService pool = Executors.newFixedThreadPool(THREADS);
         for (String str : SET_LINKS) {
             pool.execute(() -> {
@@ -97,6 +125,7 @@ public class Parser {
         pool.shutdown();
         try {
             pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            return;
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -115,56 +144,6 @@ public class Parser {
         reader.close();
     }
 
-    /*private void fillTxt() throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH));
-        for (String str: SET_LINKS) {
-            writer.write(str);
-            writer.write("\n");
-        }
-        writer.close();
-        //stateFill = true;
-    }*/
-
-    /*private void inter() throws IOException, InterruptedException {
-        while (true) {
-            Document document = Jsoup.connect(GEN_URL)
-                    .userAgent("Chrome/4.0.249.0")
-                    .referrer("http://www.google.com")
-                    .get();
-            Elements links = document.select("url > loc");
-            ArrayList<String> listLink = new ArrayList<>();
-            for (Element div : links) {
-                if (!SET_LINKS.contains(div.text())) {
-                    SET_LINKS.add(div.text());
-                    listLink.add(div.text());
-                }
-            }
-
-            for (String str : listLink) {
-                System.out.println(str);
-                WebSite webSite = new WebSite(str);
-                webSite.printInfo();
-            }
-
-            Thread.sleep(sleepTimer);
-        }
-    }*/
-
-    /*private void updateTxt() throws IOException, InterruptedException {
-        if (!SET_LINKS.isEmpty()) {
-            inter();
-        }
-        else {
-            BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH));
-            String str = reader.readLine();
-            while (str != null) {
-                SET_LINKS.add(str);
-                str = reader.readLine();
-            }
-            //stateFill = true;
-        }
-    }*/
-
     private void formLink(Element link) throws IOException {
         this.document = Jsoup.connect(link.text())
                 .userAgent("Chrome/4.0.249.0")
@@ -181,6 +160,13 @@ public class Parser {
                 }
             }
         }
+        tempTxt(link.text());
+    }
+
+    private void tempTxt(String str) throws IOException {
+        BufferedWriter writer1 = new BufferedWriter(new FileWriter("tempTxt"));
+        writer1.write(str);
+        writer1.close();
     }
 
     public Parser(int time) throws IOException {
@@ -190,6 +176,7 @@ public class Parser {
                 .referrer("http://www.google.com")
                 .get();
         setSleepTimer(time);
+        primFill();
     }
 
 }
