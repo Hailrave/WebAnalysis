@@ -20,7 +20,7 @@ public class Parser {
     private int sleepTimer; //in minutes
     private static final String FILE_PATH = "listNews.txt";
     private static final String FILE_TMP = "tempL.txt";
-    //private static final DataBase dataBase = new DataBase();
+    private static final DataBase dataBase = new DataBase();
     private static BufferedWriter writer;
     private static int currentState; // -1 - файл пуст, 0 - не все ссылки сохранились,
     // 1 - все ссылки сохранены в txt, 2 - вся информация в БД
@@ -138,7 +138,7 @@ public class Parser {
                         try {
                             WebSite webSite = new WebSite(str);
                             synchronized (this) {
-                                //dataBase.Logic(webSite);
+                                dataBase.Logic(webSite);
                             }
                         } catch (IOException | ClassNotFoundException | SQLException | ParseException e) {
                             e.printStackTrace();
@@ -250,7 +250,7 @@ public class Parser {
                         WebSite webSite = new WebSite(str);
                         addLinkTemp(str);
                         synchronized (this) {
-                            //dataBase.Logic(webSite);
+                            dataBase.Logic(webSite);
                         }
                     }
                 }catch (IOException | ClassNotFoundException | SQLException | ParseException e ) {
