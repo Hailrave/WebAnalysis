@@ -19,7 +19,7 @@ public class Parser {
     private static final String GEN_URL = "https://rb.ru/sitemap-news.xml";
     private int sleepTimer; //in minutes
     private static final String FILE_PATH = "listNews.txt";
-    private static final DataBase dataBase = new DataBase();
+    //private static final DataBase dataBase = new DataBase();
     private static BufferedWriter writer;
     private static int currentState; // -1 - файл пуст, 0 - не все ссылки сохранились,
     // 1 - все ссылки сохранены в txt, 2 - вся информация в БД
@@ -58,32 +58,11 @@ public class Parser {
     public void primFill() throws IOException {
         stateHandler();
 
-        if (currentState == -1) { //заполнить
-            ExecutorService pool = Executors.newFixedThreadPool(THREADS);
-            Elements links = document.select("loc");
-            for (Element link: links){
-                pool.execute(() -> {
-                    try {
-                        formLink(link);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-            }
-            pool.shutdown();
-            try {
-                pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            setFlagTxt('1'); //все необходимые ссылки получены в файл
-        }
-        else if (currentState == 0) { //дополнить
-            fillSet();
-            ExecutorService pool = Executors.newFixedThreadPool(THREADS);
-            Elements links = document.select("loc");
-            for (Element link: links) {
-                if (!SET_LINKS.contains(link.text())) {
+        while (true) {
+            if (currentState == -1) { //заполнить
+                ExecutorService pool = Executors.newFixedThreadPool(THREADS);
+                Elements links = document.select("loc");
+                for (Element link : links) {
                     pool.execute(() -> {
                         try {
                             formLink(link);
@@ -92,66 +71,90 @@ public class Parser {
                         }
                     });
                 }
+                pool.shutdown();
+                try {
+                    pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                setFlagTxt('1'); //все необходимые ссылки получены в файл
             }
-            pool.shutdown();
-            try {
-                pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            setFlagTxt('1');
-        }
-        else if (currentState == 1) {
-            if (SET_LINKS.isEmpty()) {
+            else if (currentState == 0) { //дополнить
                 fillSet();
+                ExecutorService pool = Executors.newFixedThreadPool(THREADS);
+                Elements links = document.select("loc");
+                for (Element link : links) {
+                    if (!SET_LINKS.contains(link.text())) {
+                        pool.execute(() -> {
+                            try {
+                                formLink(link);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+                    }
+                }
+                pool.shutdown();
+                try {
+                    pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                setFlagTxt('1');
             }
-            getInfoFields();
-            setFlagTxt('2'); // БД наполнена информацией
-        }
-        else if (currentState == 2) {
-            ArrayList<String> arrlist = new ArrayList<>();
-            fillSet();
-            ExecutorService pool = Executors.newFixedThreadPool(THREADS);
-            Elements links = document.select("loc");
-            for (Element link: links) {
-                if (!SET_LINKS.contains(link.text())) {
+            else if (currentState == 1) {
+                if (SET_LINKS.isEmpty()) {
+                    fillSet();
+                }
+                getInfoFields();
+                setFlagTxt('2'); // БД наполнена информацией
+            }
+            else if (currentState == 2) {
+                ArrayList<String> arrlist = new ArrayList<>();
+                fillSet();
+                ExecutorService pool = Executors.newFixedThreadPool(THREADS);
+                Elements links = document.select("loc");
+                for (Element link : links) {
+                    if (!SET_LINKS.contains(link.text())) {
+                        pool.execute(() -> {
+                            try {
+                                formLink(link);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+                        arrlist.add(link.text());
+                    }
+                }
+                pool.shutdown();
+                try {
+                    pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.setProperty("https.protocols", "TLSv1.1");
+                for (String str : arrlist) {
                     pool.execute(() -> {
                         try {
-                            formLink(link);
-                        } catch (IOException e) {
+                            WebSite webSite = new WebSite(str);
+                            synchronized (this) {
+                                //dataBase.Logic(webSite);
+                            }
+                        } catch (IOException | ClassNotFoundException | SQLException | ParseException e) {
                             e.printStackTrace();
                         }
                     });
-                    arrlist.add(link.text());
                 }
+                pool.shutdown();
+                try {
+                    pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+                    return;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                currentState = 3;
             }
-            pool.shutdown();
-            try {
-                pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            System.setProperty("https.protocols", "TLSv1.1");
-            for (String str : arrlist) {
-                pool.execute(() -> {
-                    try {
-                        WebSite webSite = new WebSite(str);
-                        synchronized (this) {
-                            dataBase.Logic(webSite);
-                        }
-                    } catch (IOException | ClassNotFoundException | SQLException | ParseException e ) {
-                        e.printStackTrace();
-                    }
-                });
-            }
-            pool.shutdown();
-            try {
-                pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-                return;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
+            if (currentState == 3) break;
         }
     }
 
@@ -183,7 +186,7 @@ public class Parser {
                 try {
                     WebSite webSite = new WebSite(str);
                     synchronized (this) {
-                        dataBase.Logic(webSite);
+                        //dataBase.Logic(webSite);
                     }
                 } catch (IOException | ClassNotFoundException | SQLException | ParseException e ) {
                     e.printStackTrace();
@@ -228,7 +231,6 @@ public class Parser {
                     }
                 }
         }
-        System.out.println(link.text());
     }
 
     public Parser(int time) throws IOException {
