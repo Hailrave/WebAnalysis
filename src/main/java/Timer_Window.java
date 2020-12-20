@@ -2,6 +2,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class Timer_Window extends JFrame implements ActionListener //ввод таймера и начало наблюдения
@@ -44,8 +47,17 @@ public class Timer_Window extends JFrame implements ActionListener //ввод т
             }else {
                 int timer = Integer.parseInt(tmp);
                 dispose();
-                new Break_Window();  //создание окна "break_window"
-                //тут вызов функции наблюдения с таймером
+                ExecutorService pool = Executors.newFixedThreadPool(2);
+                pool.execute(() -> {
+                    new Break_Window();  //создание окна "break_window"
+                    try {
+                        Parser parser = new Parser();
+                        parser.observation(timer);
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
+                });
+                pool.shutdown();
             }
         }
 

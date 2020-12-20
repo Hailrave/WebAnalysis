@@ -2,9 +2,10 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import javax.swing.*;
 
 
 public class StartupWindow extends JFrame implements ActionListener //главное окно программы
@@ -16,9 +17,10 @@ public class StartupWindow extends JFrame implements ActionListener //главн
     public StartupWindow()
     {
         setTitle("News catcher");
-        setSize(300,200);
+        setSize(400,300);
         setResizable(false);
         setLocationRelativeTo(null);
+
         setLayout(new GridBagLayout());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -43,8 +45,17 @@ public class StartupWindow extends JFrame implements ActionListener //главн
 
         if (cmd.equals("Start")){ //создание окна "break_window"
             dispose();
-            new Break_Window();
-            //функция начало наполнение
+            ExecutorService pool = Executors.newFixedThreadPool(2);
+            pool.execute(() -> {
+                new Break_Window();
+                try {
+                    Parser parser = new Parser();
+                    parser.primFill();
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            });
+            pool.shutdown();
         }
         if(cmd.equals("Set")) //создание окна "timer_window"
         {

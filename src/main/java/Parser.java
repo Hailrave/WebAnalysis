@@ -16,10 +16,10 @@ import java.util.concurrent.TimeUnit;
 public class Parser {
     private static final Set<String> SET_LINKS = new HashSet<>();
     private Document document;
-    private static final String GEN_URL = "https://rb.ru/sitemap-news.xml";
     private int sleepTimer; //in minutes
     private static final String FILE_PATH = "listNews.txt";
-    //private static final DataBase dataBase = new DataBase();
+    private static final String FILE_PATHG = "listgen.txt";
+    private static final DataBase dataBase = new DataBase();
     private static BufferedWriter writer;
     private static int currentState; // -1 - файл пуст, 0 - не все ссылки сохранились,
     // 1 - все ссылки сохранены в txt, 2 - вся информация в БД
@@ -56,9 +56,8 @@ public class Parser {
     }
 
     public void primFill() throws IOException {
-        stateHandler();
-
         while (true) {
+            stateHandler();
             if (currentState == -1) { //заполнить
                 ExecutorService pool = Executors.newFixedThreadPool(THREADS);
                 Elements links = document.select("loc");
@@ -84,15 +83,13 @@ public class Parser {
                 ExecutorService pool = Executors.newFixedThreadPool(THREADS);
                 Elements links = document.select("loc");
                 for (Element link : links) {
-                    if (!SET_LINKS.contains(link.text())) {
-                        pool.execute(() -> {
-                            try {
-                                formLink(link);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        });
-                    }
+                    pool.execute(() -> {
+                        try {
+                            formLink(link);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
                 }
                 pool.shutdown();
                 try {
@@ -108,6 +105,7 @@ public class Parser {
                 }
                 getInfoFields();
                 setFlagTxt('2'); // БД наполнена информацией
+                break;
             }
             else if (currentState == 2) {
                 ArrayList<String> arrlist = new ArrayList<>();
@@ -152,17 +150,27 @@ public class Parser {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                currentState = 3;
+                setFlagTxt('3');
             }
             if (currentState == 3) break;
         }
     }
 
-    /*public void observation() {
+    public void observation(int time) {
+        setSleepTimer(time);
         if (SET_LINKS.isEmpty()) {
 
         }
-    }*/
+    }
+
+    private void fillGen() throws IOException {
+        Elements links1 = document.select("loc");
+        for (Element link : links1) {
+            BufferedWriter writer1 = new BufferedWriter(new FileWriter(FILE_PATHG, true));
+            writer1.write(link.text() + "\n");
+            writer1.close();
+        }
+    }
 
     synchronized private void addLinkTxt(String link) throws IOException {
         writer.write(link + "\n");
@@ -186,7 +194,7 @@ public class Parser {
                 try {
                     WebSite webSite = new WebSite(str);
                     synchronized (this) {
-                        //dataBase.Logic(webSite);
+                        dataBase.Logic(webSite);
                     }
                 } catch (IOException | ClassNotFoundException | SQLException | ParseException e ) {
                     e.printStackTrace();
@@ -226,20 +234,20 @@ public class Parser {
                 String[] arrr = onCE.text().split("/");
                 if (!arrr[3].equals("tag")) {
                     synchronized (this) {
-                        addLinkTxt(onCE.text());
-                        SET_LINKS.add(onCE.text());
+                        if (!SET_LINKS.contains(onCE.text())) {
+                            addLinkTxt(onCE.text());
+                            SET_LINKS.add(onCE.text());
+                        }
                     }
                 }
         }
     }
 
-    public Parser(int time) throws IOException {
+    public Parser() throws IOException {
         this.document = Jsoup.connect("https://rb.ru/sitemap.xml")
                 .userAgent("Chrome/4.0.249.0")
                 .referrer("http://www.google.com")
                 .get();
-        setSleepTimer(time);
-        primFill();
     }
 
 }

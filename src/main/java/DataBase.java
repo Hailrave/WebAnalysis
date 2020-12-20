@@ -7,7 +7,7 @@ import java.text.ParseException;
 public class DataBase{
     public static final String USER_NAME="root";
     public static  final String PASSWORD="Kop27513kop";
-    public static final String URL = "jdbc:mysql://127.0.0.1:3306/newsbase"+
+    public static final String URL = "95.167.31.154/127.0.0.1:3306"+
             "?verifyServerCertificate=false"+
             "&useSSL=false"+
             "&requireSSL=false"+
