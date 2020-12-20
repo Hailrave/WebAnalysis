@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -18,6 +19,9 @@ public class Timer_Window extends JFrame implements ActionListener //ввод т
         setTitle("News catcher");
         setSize(500,300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        URL iconURL = getClass().getResource("/newsIcon.png");
+        ImageIcon icon = new ImageIcon(iconURL);
+        setIconImage(icon.getImage());
         setLocationRelativeTo(null);
         setLayout(new GridBagLayout());
         label = new JLabel("Enter time from 1 to 240 minutes:  ");
@@ -53,7 +57,7 @@ public class Timer_Window extends JFrame implements ActionListener //ввод т
                     try {
                         Parser parser = new Parser();
                         parser.observation(timer);
-                    } catch (IOException ioException) {
+                    } catch (IOException | InterruptedException ioException) {
                         ioException.printStackTrace();
                     }
                 });

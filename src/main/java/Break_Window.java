@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URL;
 
 public class Break_Window extends JFrame implements ActionListener //окно завершения работы программы
         //aka прервать программу
@@ -12,6 +13,9 @@ public class Break_Window extends JFrame implements ActionListener //окно з
     {
         setSize(400,300);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        URL iconURL = getClass().getResource("/newsIcon.png");
+        ImageIcon icon = new ImageIcon(iconURL);
+        setIconImage(icon.getImage());
         setLocationRelativeTo(null);
         setLayout(new GridBagLayout());
         break_button = new JButton("Break");

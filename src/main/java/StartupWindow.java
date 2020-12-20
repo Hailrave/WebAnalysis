@@ -2,9 +2,12 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 
@@ -14,13 +17,14 @@ public class StartupWindow extends JFrame implements ActionListener //главн
     private final JButton start_button;
     private final JButton timer_button;
 
-    public StartupWindow()
-    {
+    public StartupWindow() throws IOException {
         setTitle("News catcher");
         setSize(400,300);
         setResizable(false);
         setLocationRelativeTo(null);
-
+        URL iconURL = getClass().getResource("/newsIcon.png");
+        ImageIcon icon = new ImageIcon(iconURL);
+        setIconImage(icon.getImage());
         setLayout(new GridBagLayout());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 

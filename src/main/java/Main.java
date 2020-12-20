@@ -8,7 +8,11 @@ public class Main {
             @Override
             public void run()
             {
-                new StartupWindow().setVisible(true);
+                try {
+                    new StartupWindow().setVisible(true);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
         });

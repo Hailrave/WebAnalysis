@@ -15,11 +15,12 @@ import java.util.concurrent.TimeUnit;
 
 public class Parser {
     private static final Set<String> SET_LINKS = new HashSet<>();
+    private static final Set<String> SET_TEMP = new HashSet<>();
     private Document document;
     private int sleepTimer; //in minutes
     private static final String FILE_PATH = "listNews.txt";
-    private static final String FILE_PATHG = "listgen.txt";
-    private static final DataBase dataBase = new DataBase();
+    private static final String FILE_TMP = "tempL.txt";
+    //private static final DataBase dataBase = new DataBase();
     private static BufferedWriter writer;
     private static int currentState; // -1 - файл пуст, 0 - не все ссылки сохранились,
     // 1 - все ссылки сохранены в txt, 2 - вся информация в БД
@@ -37,7 +38,7 @@ public class Parser {
         sleepTimer = time * 60000;
     }
 
-    //TODO первичное наблюдение
+    //TODO наблюдение
 
     private void stateHandler() throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH));
@@ -103,6 +104,7 @@ public class Parser {
                 if (SET_LINKS.isEmpty()) {
                     fillSet();
                 }
+                fillTemp();
                 getInfoFields();
                 setFlagTxt('2'); // БД наполнена информацией
                 break;
@@ -156,24 +158,63 @@ public class Parser {
         }
     }
 
-    public void observation(int time) {
+    public void observation(int time) throws IOException, InterruptedException {
         setSleepTimer(time);
         if (SET_LINKS.isEmpty()) {
-
+            try {
+                fillSet();
+            } catch (IOException e) {
+                primFill();
+            }
         }
-    }
 
-    private void fillGen() throws IOException {
-        Elements links1 = document.select("loc");
-        for (Element link : links1) {
-            BufferedWriter writer1 = new BufferedWriter(new FileWriter(FILE_PATHG, true));
-            writer1.write(link.text() + "\n");
-            writer1.close();
+        while (true) {
+            ArrayList<String> list = new ArrayList<>();
+            this.document = Jsoup.connect("https://rb.ru/sitemap-news.xml")
+                    .userAgent("Chrome/4.0.249.0")
+                    .referrer("http://www.google.com")
+                    .get();
+            Elements links = document.select("url > loc");
+            for (Element link : links) {
+                if (!SET_LINKS.contains(link.text())) {
+                    addLinkTxt(link.text());
+                    list.add(link.text());
+                }
+            }
+            ExecutorService pool = Executors.newFixedThreadPool(THREADS);
+            for (String str : list) {
+                pool.execute(() -> {
+                    try {
+                        WebSite webSite = new WebSite(str);
+                        synchronized (this) {
+                            //dataBase.Logic(webSite);
+                        }
+                    } catch (IOException | ClassNotFoundException | SQLException | ParseException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+            pool.shutdown();
+            try {
+                pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+                return;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Thread.sleep(sleepTimer);
         }
+
+
     }
 
     synchronized private void addLinkTxt(String link) throws IOException {
         writer.write(link + "\n");
+    }
+
+    synchronized private void addLinkTemp(String str) throws IOException {
+        BufferedWriter writer1 = new BufferedWriter(new FileWriter(FILE_TMP));
+        writer1.write(str);
+        writer1.close();
     }
 
     private void setFlagTxt(char unit) throws IOException {
@@ -186,17 +227,33 @@ public class Parser {
         currentState = Integer.parseInt(String.valueOf(unit));
     }
 
+    private void fillTemp() throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(FILE_TMP));
+        String str = reader.readLine();
+        if (str.equals("1") || str.equals("2")) {
+            str = reader.readLine();
+        }
+        while (str != null) {
+            SET_TEMP.add(str);
+            str = reader.readLine();
+        }
+        reader.close();
+    }
+
     private void getInfoFields() {
         System.setProperty("https.protocols", "TLSv1.1");
         ExecutorService pool = Executors.newFixedThreadPool(THREADS);
         for (String str : SET_LINKS) {
             pool.execute(() -> {
                 try {
-                    WebSite webSite = new WebSite(str);
-                    synchronized (this) {
-                        dataBase.Logic(webSite);
+                    if (!SET_TEMP.contains(str)) {
+                        WebSite webSite = new WebSite(str);
+                        addLinkTemp(str);
+                        synchronized (this) {
+                            //dataBase.Logic(webSite);
+                        }
                     }
-                } catch (IOException | ClassNotFoundException | SQLException | ParseException e ) {
+                }catch (IOException | ClassNotFoundException | SQLException | ParseException e ) {
                     e.printStackTrace();
                 }
             });
