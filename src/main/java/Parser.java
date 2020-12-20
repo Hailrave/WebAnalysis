@@ -4,6 +4,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.*;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -16,6 +19,7 @@ public class Parser {
     private static final String GEN_URL = "https://rb.ru/sitemap-news.xml";
     private int sleepTimer; //in minutes
     private static final String FILE_PATH = "listNews.txt";
+    private static final DataBase dataBase = new DataBase();
     private static BufferedWriter writer;
     private static int currentState; // -1 - файл пуст, 0 - не все ссылки сохранились,
     // 1 - все ссылки сохранены в txt, 2 - вся информация в БД
@@ -33,7 +37,7 @@ public class Parser {
         sleepTimer = time * 60000;
     }
 
-    //TODO первичное наполнение, наблюдение
+    //TODO первичное наблюдение
 
     private void stateHandler() throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH));
@@ -53,10 +57,6 @@ public class Parser {
 
     public void primFill() throws IOException {
         stateHandler();
-
-        if (currentState == 2) { //обновить данные
-
-        }
 
         if (currentState == -1) { //заполнить
             ExecutorService pool = Executors.newFixedThreadPool(THREADS);
@@ -78,16 +78,81 @@ public class Parser {
             }
             setFlagTxt('1'); //все необходимые ссылки получены в файл
         }
-
-        if (currentState == 0) {
-
-        }
-
-        if (SET_LINKS.isEmpty()) {
+        else if (currentState == 0) { //дополнить
             fillSet();
+            ExecutorService pool = Executors.newFixedThreadPool(THREADS);
+            Elements links = document.select("loc");
+            for (Element link: links) {
+                if (!SET_LINKS.contains(link.text())) {
+                    pool.execute(() -> {
+                        try {
+                            formLink(link);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                }
+            }
+            pool.shutdown();
+            try {
+                pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            setFlagTxt('1');
         }
-        getInfoFields();
-        setFlagTxt('2'); //БД наполнена информацией
+        else if (currentState == 1) {
+            if (SET_LINKS.isEmpty()) {
+                fillSet();
+            }
+            getInfoFields();
+            setFlagTxt('2'); // БД наполнена информацией
+        }
+        else if (currentState == 2) {
+            ArrayList<String> arrlist = new ArrayList<>();
+            fillSet();
+            ExecutorService pool = Executors.newFixedThreadPool(THREADS);
+            Elements links = document.select("loc");
+            for (Element link: links) {
+                if (!SET_LINKS.contains(link.text())) {
+                    pool.execute(() -> {
+                        try {
+                            formLink(link);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                    arrlist.add(link.text());
+                }
+            }
+            pool.shutdown();
+            try {
+                pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.setProperty("https.protocols", "TLSv1.1");
+            for (String str : arrlist) {
+                pool.execute(() -> {
+                    try {
+                        WebSite webSite = new WebSite(str);
+                        synchronized (this) {
+                            dataBase.Logic(webSite);
+                        }
+                    } catch (IOException | ClassNotFoundException | SQLException | ParseException e ) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+            pool.shutdown();
+            try {
+                pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+                return;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        }
     }
 
     /*public void observation() {
@@ -117,7 +182,10 @@ public class Parser {
             pool.execute(() -> {
                 try {
                     WebSite webSite = new WebSite(str);
-                } catch (IOException e) {
+                    synchronized (this) {
+                        dataBase.Logic(webSite);
+                    }
+                } catch (IOException | ClassNotFoundException | SQLException | ParseException e ) {
                     e.printStackTrace();
                 }
             });
@@ -152,25 +220,18 @@ public class Parser {
 
         Elements once = document.select("url > loc");
         for (Element onCE : once) {
-            String[] arrr = onCE.text().split("/");
-            synchronized (this) {
+                String[] arrr = onCE.text().split("/");
                 if (!arrr[3].equals("tag")) {
-                    addLinkTxt(onCE.text());
-                    SET_LINKS.add(onCE.text());
+                    synchronized (this) {
+                        addLinkTxt(onCE.text());
+                        SET_LINKS.add(onCE.text());
+                    }
                 }
-            }
         }
-        tempTxt(link.text());
-    }
-
-    private void tempTxt(String str) throws IOException {
-        BufferedWriter writer1 = new BufferedWriter(new FileWriter("tempTxt"));
-        writer1.write(str);
-        writer1.close();
+        System.out.println(link.text());
     }
 
     public Parser(int time) throws IOException {
-        //TODO проверки на заполненность txt
         this.document = Jsoup.connect("https://rb.ru/sitemap.xml")
                 .userAgent("Chrome/4.0.249.0")
                 .referrer("http://www.google.com")

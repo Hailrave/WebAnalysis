@@ -4,6 +4,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ public class WebSite {
     private String publType;
     private String subscribtion;
 
-    public WebSite(String URL) throws IOException {
+    public WebSite(String URL) throws IOException, ParseException, SQLException, ClassNotFoundException {
         document = Jsoup.connect(URL)
                 .userAgent("Chrome/4.0.249.0")
                 .referrer("http://www.google.com")
