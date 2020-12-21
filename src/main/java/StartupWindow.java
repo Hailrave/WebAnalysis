@@ -2,12 +2,10 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import javax.imageio.ImageIO;
 import javax.swing.*;
 
 
@@ -47,21 +45,27 @@ public class StartupWindow extends JFrame implements ActionListener //главн
     {
         String cmd = e.getActionCommand();
 
-        if (cmd.equals("Start")){ //создание окна "break_window"
+        if (cmd.equals("Start")){ //если нажата Start, начать первичное наполнение
             dispose();
-            ExecutorService pool = Executors.newFixedThreadPool(2);
+            ExecutorService pool = Executors.newFixedThreadPool(2); //созд.потоки
+            Break_Window breakW = new Break_Window(); //создание окна "break_window"
             pool.execute(() -> {
-                new Break_Window();
+                breakW.setVisible(true);
                 try {
                     Parser parser = new Parser();
-                    parser.primFill();
+                    parser.primFill(); //метод первичного наполнения
+                    breakW.dispose();
+                    new End_Window(); //окошко закрытия программы после завершения работы парсера
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
+
             });
             pool.shutdown();
+
         }
-        if(cmd.equals("Set")) //создание окна "timer_window"
+
+        if(cmd.equals("Set")) //если нажата Set timer, создание окна "timer_window"
         {
             dispose();
             new Timer_Window();

@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class WebSite {
+public class WebSite {        //вся нужная инфо из каждой ссылки
     private static Document document;
     private final String URL;
     private String title;
@@ -28,7 +28,6 @@ public class WebSite {
                 .get();
         this.URL = URL;
         setInfo();
-        printInfo();
     }
 
     private void setInfo() {
@@ -131,14 +130,6 @@ public class WebSite {
         this.content = sb.toString();
     }
 
-    public void printInfo() {
-        System.out.println(publType);
-        System.out.println(title);
-        System.out.println(tags);
-        System.out.println(date);
-        System.out.println(autor);
-        System.out.println(subscribtion);
-        System.out.println(content);
-    }
+
 
 }

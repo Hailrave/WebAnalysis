@@ -11,6 +11,7 @@ public class Break_Window extends JFrame implements ActionListener //окно з
 
     public Break_Window()
     {
+        setTitle("News catcher");
         setSize(400,300);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         URL iconURL = getClass().getResource("/newsIcon.png");
@@ -23,7 +24,6 @@ public class Break_Window extends JFrame implements ActionListener //окно з
         break_button.setActionCommand("Break");
         add(break_button);
 
-        setVisible(true);
     }
 
     @Override
@@ -31,7 +31,7 @@ public class Break_Window extends JFrame implements ActionListener //окно з
     {
         String cmd = e.getActionCommand();
 
-        if (cmd.equals("Break")){  //завершение работы программы
+        if (cmd.equals("Break")){  //завершение(прерывание) работы программы
             System.exit(0);
         };
     }

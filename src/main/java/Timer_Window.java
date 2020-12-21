@@ -43,20 +43,20 @@ public class Timer_Window extends JFrame implements ActionListener //ввод т
     {
         String cmd = e.getActionCommand();
 
-        if (cmd.equals("Start")){   //ввод таймера и начало наблюдения
-            String tmp;
-            tmp = enter_timer.getText();
-            if(Integer.parseInt(tmp) < 1 || Integer.parseInt(tmp) > 240){
+        if (cmd.equals("Start")){   //если нажата Start
+            int tmp;
+            tmp = Integer.parseInt(enter_timer.getText()); //получение введенного значения
+            if(tmp < 1 || tmp > 240){
                 enter_timer.setText("");
             }else {
-                int timer = Integer.parseInt(tmp);
+                int timer = tmp; //записываем в переменную введенное пользователем время
                 dispose();
-                ExecutorService pool = Executors.newFixedThreadPool(2);
+                ExecutorService pool = Executors.newFixedThreadPool(2); //созд.потоки
                 pool.execute(() -> {
-                    new Break_Window();  //создание окна "break_window"
+                    new Break_Window().setVisible(true);  //создание окна "break_window"
                     try {
                         Parser parser = new Parser();
-                        parser.observation(timer);
+                        parser.observation(timer); //метод начало наблюдения
                     } catch (IOException | InterruptedException ioException) {
                         ioException.printStackTrace();
                     }
