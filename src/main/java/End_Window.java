@@ -2,11 +2,20 @@ import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
 
+/**
+ * класс - окно полного завершения работы первичного наполнения
+ */
 public class End_Window extends JFrame //окно полного завершения работы первичного наполнения
 
 {
+    /**
+     * поле с текстом
+     */
     private final JLabel label;
 
+    /**
+     * конструктор
+     */
     public End_Window()
     {
         setTitle("News catcher");

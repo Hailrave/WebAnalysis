@@ -4,11 +4,20 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
 
+/**
+ * класс - окно завершения работы программы aka прервать программу
+ */
 public class Break_Window extends JFrame implements ActionListener //окно завершения работы программы
         //aka прервать программу
 {
+    /**
+     * поле кнопка прервать программу
+     */
     private final JButton break_button;
 
+    /**
+     * конструктор
+     */
     public Break_Window()
     {
         setTitle("News catcher");
@@ -26,6 +35,10 @@ public class Break_Window extends JFrame implements ActionListener //окно з
 
     }
 
+    /**
+     * функция что происходит после нажатия кнопки
+     * @param e - нажатие кнопки
+     */
     @Override
     public void actionPerformed(ActionEvent e)
     {

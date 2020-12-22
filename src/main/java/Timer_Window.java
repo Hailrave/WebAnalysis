@@ -7,13 +7,23 @@ import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
+/**
+ * класс ввод таймера и начало наблюдения
+ */
 public class Timer_Window extends JFrame implements ActionListener //ввод таймера и начало наблюдения
 {
+    /**
+     * start_timer_button - поле кнопка Start
+     * label - поле с текстом
+     * enter_timer - поле для ввода текста
+     */
     private final JButton start_timer_button;
     private final JLabel label;
     private final JTextField enter_timer;
 
+    /**
+     * конструктор
+     */
     public Timer_Window()
     {
         setTitle("News catcher");
@@ -38,11 +48,21 @@ public class Timer_Window extends JFrame implements ActionListener //ввод т
         setVisible(true);
     }
 
+    /**
+     * функция что происходит после нажатия на кнопку
+     * @param e - нажатие кнопки
+     *
+     */
     @Override
     public void actionPerformed(ActionEvent e)
     {
         String cmd = e.getActionCommand();
-
+        /**
+         * начало наблюдения
+         * @see Break_Window#Break_Window()
+         * @see Parser#Parser()
+         * @see Parser#observation(int)
+         */
         if (cmd.equals("Start")){   //если нажата Start
             int tmp;
             tmp = Integer.parseInt(enter_timer.getText()); //получение введенного значения

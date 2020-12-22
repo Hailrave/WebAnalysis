@@ -10,7 +10,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+/**
+ * класс - вся нужная инфо из каждой ссылки
+ * состоит из сеттеров и геттеров
+ */
 public class WebSite {        //вся нужная инфо из каждой ссылки
+    /**
+     * в поля записывается инфо из соответствующих тегов
+     */
     private static Document document;
     private final String URL;
     private String title;
@@ -21,7 +28,18 @@ public class WebSite {        //вся нужная инфо из каждой �
     private String publType;
     private String subscribtion;
 
+    /**
+     * конструктор
+     * @param URL - адрес ссылки
+     * @throws IOException
+     * @throws ParseException
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     */
     public WebSite(String URL) throws IOException, ParseException, SQLException, ClassNotFoundException {
+        /**
+         * @see setInfo()
+         */
         document = Jsoup.connect(URL)
                 .userAgent("Chrome/4.0.249.0")
                 .referrer("http://www.google.com")
@@ -30,6 +48,9 @@ public class WebSite {        //вся нужная инфо из каждой �
         setInfo();
     }
 
+    /**
+     * функция заполнения полей
+     */
     private void setInfo() {
         setPublType();
         setAutor();

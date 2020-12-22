@@ -13,6 +13,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * класс - основной класс, тут происходит парсинг
+ */
 public class Parser {
     private static final Set<String> SET_LINKS = new HashSet<>();
     private static final Set<String> SET_TEMP = new HashSet<>();
@@ -27,6 +30,9 @@ public class Parser {
     // 1 - все ссылки сохранены в txt, 2 - вся информация в БД
     private final int THREADS = 8;
 
+    /**
+     * создание буферного потока ввода символов
+     */
     static { //создание буферного потока ввода символов
         try {
             writer = new BufferedWriter(new FileWriter(FILE_PATH, true));
@@ -42,10 +48,18 @@ public class Parser {
         }
     }
 
+    /**
+     * функция задержка в мс
+     * @param time - введенное пользователем значение таймера
+     */
     public void setSleepTimer(int time) {
         sleepTimer = time * 60000;
     } //задержка в мс
 
+    /**
+     * функция проверки есть ли что-то в файле
+     * @throws IOException
+     */
     private void stateHandler() throws IOException { //есть ли что-то в файле
         BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH)); //буферизация ввода из осн.файла
         String tmp = reader.readLine(); //считываем построчно в tmp
@@ -62,8 +76,23 @@ public class Parser {
         reader.close(); //закрыть поток
     }
 
+    /**
+     * функция первичное наполнение
+     * @throws IOException
+     */
     public void primFill() throws IOException {  //первичное наполнение
         while (true) {
+            /**
+             * @see stateHandler()
+             * @see formLink(Element)
+             * @see setFlagTxt(char)
+             * @see fillSet()
+             * @see fillTemp()
+             * @see getInfoFields()
+             * @see website#WebSite()
+             * @see DataBase#WriteDB(WebSite)
+             * @see DataBase#CloseDB()
+             */
             stateHandler(); //есть ли что-то в файле
             if (currentState == -1) { //файл пуст, заполнить
                 ExecutorService pool = Executors.newFixedThreadPool(THREADS); //созд.потоки
@@ -113,6 +142,7 @@ public class Parser {
                 fillTemp(); //заполняем временный HashSet инфо из временного файла
                 getInfoFields(); //добавление инфо в бд
                 setFlagTxt('2'); // БД наполнена информацией
+
                 break;
             }
             else if (currentState == 2) { //обновляем инфо
@@ -145,6 +175,7 @@ public class Parser {
                             WebSite webSite = new WebSite(str);
                             synchronized (this) {
                                 dataBase.WriteDB(webSite);
+
                             }
                         } catch (IOException | ClassNotFoundException | SQLException | ParseException e) {
                             e.printStackTrace();
@@ -162,9 +193,25 @@ public class Parser {
             }
             if (currentState == 3) break;
         }
+        try {
+            dataBase.CloseDB();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 
+    /**
+     * функция - начало наблюдения
+     * @param time - время, введенное пользователем в мин
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public void observation(int time) throws IOException, InterruptedException { //начало наблюдения
+        /**
+         * @see setSleepTimer(int)
+         * @see fillSet()
+         * @see primFill()
+         */
         setSleepTimer(time);
         if (SET_LINKS.isEmpty()) {
             try {
@@ -175,6 +222,11 @@ public class Parser {
         }
 
         while (true) {
+            /**
+             * @see DataBase#WriteDB(WebSite);
+             * @see addLinkTxt(String)
+             * @see
+             */
             ArrayList<String> list = new ArrayList<>();
             this.document = Jsoup.connect("https://rb.ru/sitemap-news.xml") //подкл. к актуальной ссылке
                     .userAgent("Chrome/4.0.249.0")
@@ -210,21 +262,34 @@ public class Parser {
             Thread.sleep(sleepTimer);
         }
 
-
     }
 
+    /**
+     * фукция - запись в файл
+     * @param link - строка для записи в файл
+     * @throws IOException
+     */
     synchronized private void addLinkTxt(String link) throws IOException {
         writer.write(link + "\n");
     }
 
+    /**
+     * фукция запись строки во временный файл
+     * @param str - строка для записи в файл
+     * @throws IOException
+     */
     synchronized private void addLinkTemp(String str) throws IOException { //запись строки во временный файл
         BufferedWriter writer1 = new BufferedWriter(new FileWriter(FILE_TMP));
         writer1.write(str);
         writer1.close();
     }
 
+    /**
+     * фукция в начало файла записывает его состояние
+     * @param unit - состояние
+     * @throws IOException
+     */
     private void setFlagTxt(char unit) throws IOException { //в начало файла записывает его состояние
-        //BufferedWriter writerF = new BufferedWriter(new FileWriter("listNews.txt"));
         writer_tmp.write(unit + "\n");
         for (String str : SET_LINKS) {
             writer_tmp.write(str + "\n");
@@ -233,6 +298,10 @@ public class Parser {
         currentState = Integer.parseInt(String.valueOf(unit));
     }
 
+    /**
+     * фукция - заполняет временный HashSet инфо из временного файла
+     * @throws IOException
+     */
     private void fillTemp() throws IOException { //заполняем временный HashSet инфо из временного файла
         BufferedReader reader = new BufferedReader(new FileReader(FILE_TMP)); //буферизация ввода из врем.файла
         String str = reader.readLine(); //считываем построчно в str
@@ -243,7 +312,15 @@ public class Parser {
         reader.close();
     }
 
+    /**
+     * фукция - добавление инфо в бд
+     */
     private void getInfoFields() {     //добавление инфо в бд
+        /**
+         * @see addLinkTemp(String)
+         * @see WebSite#WebSite(String)
+         * @see Data_Base#WriteDB(WebSite)
+         */
         System.setProperty("https.protocols", "TLSv1.1"); //устан.системное свойство
         ExecutorService pool = Executors.newFixedThreadPool(THREADS); //созд.потоки
         for (String str : SET_LINKS) {
@@ -270,6 +347,10 @@ public class Parser {
         }
     }
 
+    /**
+     * фукция - заполняем основной HashSet инфо из основного файла
+     * @throws IOException
+     */
     private void fillSet() throws IOException { //заполняем основной HashSet инфо из основного файла
         BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH)); //буферизация ввода из осн.файла
         String str = reader.readLine(); //считываем построчно в str
@@ -283,7 +364,15 @@ public class Parser {
         reader.close();
     }
 
+    /**
+     * фукция - добавляет инфо в осн.файл и HashSet из ссылки с ссылками
+     * @param link - ссылка
+     * @throws IOException
+     */
     private void formLink(Element link) throws IOException { //добавляет инфо в осн.файл и HashSet из ссылки с ссылками
+        /**
+         * @see  addLinkTxt(String)
+         */
         this.document = Jsoup.connect(link.text()) //подключаемся к текущей ссылке
                 .userAgent("Chrome/4.0.249.0")
                 .referrer("http://www.google.com")
@@ -303,6 +392,10 @@ public class Parser {
         }
     }
 
+    /**
+     * конструктор
+     * @throws IOException
+     */
     public Parser() throws IOException {
         this.document = Jsoup.connect("https://rb.ru/sitemap.xml")
                 .userAgent("Chrome/4.0.249.0")

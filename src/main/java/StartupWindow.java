@@ -8,13 +8,22 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.swing.*;
 
-
+/**
+ * класс - главное окно программы
+ */
 public class StartupWindow extends JFrame implements ActionListener //главное окно программы
 {
-
+    /**
+     * start_button - поле кнопка Start
+     * timer_button - поле кнопка Set Timer
+     */
     private final JButton start_button;
     private final JButton timer_button;
 
+    /**
+     * Конструктор - создание нового объекта
+     * @throws IOException
+     */
     public StartupWindow() throws IOException {
         setTitle("News catcher");
         setSize(400,300);
@@ -40,11 +49,21 @@ public class StartupWindow extends JFrame implements ActionListener //главн
 
     }
 
+    /**
+     * функция что происходит после нажатия одной из кнопок
+     * @param e - нажатие кнопки
+     */
     @Override
     public void actionPerformed(ActionEvent e)
     {
         String cmd = e.getActionCommand();
-
+        /**
+         * первичное наполнение
+         * @see Break_Window#Break_Window()
+         * @see Parser#Parser()
+         * @see Parser#primFill()
+         * @see End_Window#End_Window()
+         */
         if (cmd.equals("Start")){ //если нажата Start, начать первичное наполнение
             dispose();
             ExecutorService pool = Executors.newFixedThreadPool(2); //созд.потоки
@@ -65,6 +84,10 @@ public class StartupWindow extends JFrame implements ActionListener //главн
 
         }
 
+        /**
+         * создание окна "timer_window"
+         * @see Timer_Window#Timer_Window()
+         */
         if(cmd.equals("Set")) //если нажата Set timer, создание окна "timer_window"
         {
             dispose();
